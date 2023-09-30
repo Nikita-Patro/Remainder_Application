@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reminder App</title>
+</head>
+<body>
+    <h1>Reminder App</h1>
+    <h2>Add Reminder</h2>
+    <form action="/add" method="POST">
+        <input type="text" name="title" placeholder="Title" required>
+        <textarea name="content" placeholder="Content"></textarea>
+        <input type="datetime-local" name="due_date" required>
+        <button type="submit">Add Reminder</button>
+    </form>
+    <h2>Reminders</h2>
+    <ul>
+        {% for reminder in reminders %}
+            <li>
+                <strong>{{ reminder['title'] }}</strong>
+                <p>{{ reminder['content'] }}</p>
+                <p>Due Date: {{ reminder['due_date'] }}</p>
+                <a href="/edit/{{ loop.index0 }}">Edit</a> | <a href="/delete/{{ loop.index0 }}">Delete</a>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
