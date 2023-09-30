@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Reminder</title>
+</head>
+<body>
+    <h1>Edit Reminder</h1>
+    <form action="/edit/{{ index }}" method="POST">
+        <input type="text" name="title" placeholder="Title" value="{{ reminder['title'] }}" required>
+        <textarea name="content" placeholder="Content">{{ reminder['content'] }}</textarea>
+        <input type="datetime-local" name="due_date" value="{{ reminder['due_date'] }}" required>
+        <button type="submit">Save Changes</button>
+    </form>
+</body>
+</html>
