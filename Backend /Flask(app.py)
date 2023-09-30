@@ -1,0 +1,97 @@
+from flask import Flask, render_template, request, redirect, url_for
+import pygame
+from plyer import notification
+from datetime import datetime
+from threading import Timer
+
+app = Flask(__name__)
+
+# Store reminders in memory as a list of dictionaries
+reminders = []
+
+def notify_and_remove(index, reminder):
+    title = reminder['title']
+    content = reminder['content']
+    notification_title = f"Reminder: {title}"
+    notification_text = content if content else "No content"
+
+    # Play a sound using Pygame
+    pygame.mixer.init()
+    pygame.mixer.music.load('sound.mp3')  
+    pygame.mixer.music.play()
+
+    # Show a desktop notification
+    notification.notify(
+        title=notification_title,
+        message=notification_text,
+        timeout=10  # Notification disappears after 10 seconds
+    )
+
+    # Remove the reminder from the list
+    del reminders[index]
+
+import threading
+def check_due_reminders():
+    now = datetime.now()
+    for index, reminder in enumerate(reminders):
+        due_date = datetime.strptime(reminder['due_date'], '%Y-%m-%dT%H:%M')
+        if now >= due_date:
+            notify_and_remove(index, reminder)
+
+    # Schedule the next check after a delay (e.g., 60 seconds)
+    timer = threading.Timer(60, check_due_reminders)
+    timer.start()
+# Start the reminder checking loop
+check_due_reminders()
+
+@app.route('/')
+def index():
+    return render_template('index.html', reminders=reminders)
+
+@app.route('/add', methods=['POST'])
+def add():
+    if request.method == 'POST':
+        title = request.form['title']
+        content = request.form['content']
+        due_date = request.form['due_date']
+
+        reminder = {
+            'title': title,
+            'content': content,
+            'due_date': due_date,
+        }
+
+        reminders.append(reminder)
+        
+    return redirect(url_for('index'))
+
+@app.route('/edit/<int:index>', methods=['GET', 'POST'])
+def edit(index):
+    if request.method == 'GET':
+        if 0 <= index < len(reminders):
+            reminder = reminders[index]
+            return render_template('edit.html', index=index, reminder=reminder)
+    
+    elif request.method == 'POST':
+        if 0 <= index < len(reminders):
+            title = request.form['title']
+            content = request.form['content']
+            due_date = request.form['due_date']
+
+            reminders[index] = {
+                'title': title,
+                'content': content,
+                'due_date': due_date,
+            }
+
+    return redirect(url_for('index'))
+
+@app.route('/delete/<int:index>', methods=['GET'])
+def delete(index):
+    if 0 <= index < len(reminders):
+        del reminders[index]
+    
+    return redirect(url_for('index'))
+
+if __name__ == '__main__':
+    app.run(debug=True)
